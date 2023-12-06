@@ -34,3 +34,38 @@ func TestCreate(t *testing.T) {
 		})
 	}
 }
+
+func TestRestore(t *testing.T) {
+	type want struct {
+		id      vo.ID
+		name    vo.Name
+		version event.Version
+	}
+
+	tests := []struct {
+		name   string
+		events event.Events[any]
+		want   want
+	}{
+		{
+			name: "create",
+			events: event.Events[any]{
+				user.NewCreate("user-1", "name-1"),
+			},
+			want: want{
+				id:      "user-1",
+				name:    "name-1",
+				version: 1,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := Restore(tt.events)
+			assert.Equal(t, tt.want.id, u.id)
+			assert.Equal(t, tt.want.name, u.name)
+			assert.Equal(t, tt.want.version, u.version)
+		})
+
+	}
+}
