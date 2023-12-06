@@ -1,0 +1,14 @@
+version: "3"
+tasks:
+  install:
+    cmds:
+      - go install honnef.co/go/tools/cmd/staticcheck@latest
+  lint:
+    cmds:
+      - go vet ./...
+      - staticcheck ./...
+  test:
+    deps:
+      - lint
+    cmds:
+      - go test -v ./...
