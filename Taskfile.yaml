@@ -14,3 +14,7 @@ tasks:
       - lint
     cmds:
       - go test -v ./... {{.CLI_ARGS}}
+
+  generate:
+    cmds:
+      - go generate ./...
