@@ -47,3 +47,15 @@ func (u User) ChangeName(name vo.Name) event.Events[any] {
 func (u User) Apply(events ...event.Event[any]) User {
 	return New(append(u.events, events...)...)
 }
+
+func (u User) ID() vo.ID {
+	return u.id
+}
+
+func (u User) Version() event.Version {
+	return u.version
+}
+
+func (u User) Name() vo.Name {
+	return u.name
+}
