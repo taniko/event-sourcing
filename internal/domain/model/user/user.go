@@ -16,7 +16,7 @@ type (
 	}
 )
 
-func Restore(events event.Events[any]) User {
+func New(events ...event.Event[any]) User {
 	u := User{}
 	for _, e := range events {
 		switch e := e.(type) {
@@ -42,4 +42,8 @@ func (u User) ChangeName(name vo.Name) event.Events[any] {
 	return event.Events[any]{
 		user.NewChangeName(u.id, name, u.version+1),
 	}
+}
+
+func (u User) Apply(events ...event.Event[any]) User {
+	return New(append(u.events, events...)...)
 }

@@ -61,11 +61,77 @@ func TestRestore(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			u := Restore(tt.events)
+			u := New(tt.events...)
 			assert.Equal(t, tt.want.id, u.id)
 			assert.Equal(t, tt.want.name, u.name)
 			assert.Equal(t, tt.want.version, u.version)
 		})
+	}
+}
 
+func TestUser_Apply(t *testing.T) {
+	type args struct {
+		events event.Events[any]
+	}
+	tests := []struct {
+		name string
+		args args
+		want []User
+	}{
+		{
+			name: "create and change name",
+			args: args{
+				events: event.Events[any]{
+					user.NewCreate("user-1", "name-1"),
+					user.NewChangeName("user-1", "name-2", 2),
+				},
+			},
+			want: []User{
+				{
+					id:      "user-1",
+					name:    "name-1",
+					version: 1,
+				}, {
+					id:      "user-1",
+					name:    "name-2",
+					version: 2,
+				},
+			},
+		}, {
+			name: "create and twice change name",
+			args: args{
+				events: event.Events[any]{
+					user.NewCreate("user-1", "name-1"),
+					user.NewChangeName("user-1", "name-2", 2),
+					user.NewChangeName("user-1", "name-3", 3),
+				},
+			},
+			want: []User{
+				{
+					id:      "user-1",
+					name:    "name-1",
+					version: 1,
+				}, {
+					id:      "user-1",
+					name:    "name-2",
+					version: 2,
+				}, {
+					id:      "user-1",
+					name:    "name-3",
+					version: 3,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := New()
+			for i, e := range tt.args.events {
+				u = u.Apply(e)
+				assert.Equal(t, tt.want[i].id, u.id, "i=%d", i)
+				assert.Equal(t, tt.want[i].name, u.name, "i=%d", i)
+				assert.Equal(t, tt.want[i].version, u.version, "i=%d", i)
+			}
+		})
 	}
 }
