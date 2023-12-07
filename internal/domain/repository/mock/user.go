@@ -13,6 +13,7 @@ import (
 	reflect "reflect"
 
 	event "github.com/taniko/event-sourcing/internal/domain/event"
+	user "github.com/taniko/event-sourcing/internal/domain/model/user"
 	vo "github.com/taniko/event-sourcing/internal/domain/model/user/vo"
 	repository "github.com/taniko/event-sourcing/internal/domain/repository"
 	gomock "go.uber.org/mock/gomock"
@@ -57,7 +58,7 @@ func (mr *MockUserMockRecorder) Find(ctx, id any) *gomock.Call {
 }
 
 // Save mocks base method.
-func (m *MockUser) Save(ctx context.Context, user *repository.User, version event.Version) error {
+func (m *MockUser) Save(ctx context.Context, user user.User, version event.Version) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Save", ctx, user, version)
 	ret0, _ := ret[0].(error)

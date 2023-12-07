@@ -6,6 +6,7 @@ require (
 	github.com/google/uuid v1.4.0
 	github.com/samber/mo v1.11.0
 	github.com/stretchr/testify v1.8.4
+	go.uber.org/mock v0.3.0
 )
 
 require (
