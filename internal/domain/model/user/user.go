@@ -2,6 +2,7 @@ package user
 
 import (
 	"github.com/google/uuid"
+	command "github.com/taniko/event-sourcing/internal/command/user"
 	"github.com/taniko/event-sourcing/internal/domain/event"
 	"github.com/taniko/event-sourcing/internal/domain/event/user"
 	"github.com/taniko/event-sourcing/internal/domain/model/user/vo"
@@ -38,7 +39,8 @@ func Create(name vo.Name) event.Events[any] {
 	}
 }
 
-func (u User) ChangeName(name vo.Name) event.Events[any] {
+// 名前を変更するイベントを作成する
+func (u User) changeName(name vo.Name) event.Events[any] {
 	return event.Events[any]{
 		user.NewChangeName(u.id, name, u.version+1),
 	}
@@ -58,4 +60,16 @@ func (u User) Version() event.Version {
 
 func (u User) Name() vo.Name {
 	return u.name
+}
+
+// Execute コマンドを実行する
+func (u User) Execute(cmd any) []event.Events[any] {
+	var events []event.Events[any]
+	switch cmd := cmd.(type) {
+	case command.ChangeProfile:
+		if name, ok := cmd.Name.Get(); ok {
+			events = append(events, u.changeName(name))
+		}
+	}
+	return events
 }

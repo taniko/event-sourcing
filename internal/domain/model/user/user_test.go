@@ -135,3 +135,35 @@ func TestUser_Apply(t *testing.T) {
 		})
 	}
 }
+
+func TestUser_Execute(t *testing.T) {
+	type args struct {
+		event.Events[any]
+		name vo.Name
+	}
+	tests := []struct {
+		name string
+		args args
+		want event.Events[any]
+	}{
+		{
+			name: "change name",
+			args: args{
+				Events: event.Events[any]{
+					user.NewCreate("user-1", "original-name"),
+				},
+				name: "changed-name",
+			},
+			want: event.Events[any]{
+				user.NewChangeName("user-1", "changed-name", 2),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := New(tt.args.Events...)
+			events := u.changeName(tt.args.name)
+			assert.Equal(t, tt.want, events)
+		})
+	}
+}
