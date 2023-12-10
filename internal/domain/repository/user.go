@@ -11,5 +11,5 @@ import (
 
 type User interface {
 	Save(ctx context.Context, user model.User, version event.Version) error
-	Find(ctx context.Context, id vo.ID) (*User, error)
+	Find(ctx context.Context, id vo.ID) (*model.User, error)
 }

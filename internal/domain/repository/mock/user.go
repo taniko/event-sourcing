@@ -15,7 +15,6 @@ import (
 	event "github.com/taniko/event-sourcing/internal/domain/event"
 	user "github.com/taniko/event-sourcing/internal/domain/model/user"
 	vo "github.com/taniko/event-sourcing/internal/domain/model/user/vo"
-	repository "github.com/taniko/event-sourcing/internal/domain/repository"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -43,10 +42,10 @@ func (m *MockUser) EXPECT() *MockUserMockRecorder {
 }
 
 // Find mocks base method.
-func (m *MockUser) Find(ctx context.Context, id vo.ID) (*repository.User, error) {
+func (m *MockUser) Find(ctx context.Context, id vo.ID) (*user.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Find", ctx, id)
-	ret0, _ := ret[0].(*repository.User)
+	ret0, _ := ret[0].(*user.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
