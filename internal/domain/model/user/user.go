@@ -63,12 +63,12 @@ func (u User) Name() vo.Name {
 }
 
 // Execute コマンドを実行する
-func (u User) Execute(cmd any) []event.Events[any] {
-	var events []event.Events[any]
+func (u User) Execute(cmd any) event.Events[any] {
+	var events event.Events[any]
 	switch cmd := cmd.(type) {
 	case command.ChangeProfile:
 		if name, ok := cmd.Name.Get(); ok {
-			events = append(events, u.changeName(name))
+			events = append(events, u.changeName(name)...)
 		}
 	}
 	return events
