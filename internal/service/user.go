@@ -17,8 +17,11 @@ type User struct {
 	p    repository.Post
 }
 
-func NewUser(repo repository.User) *User {
-	return &User{repo: repo}
+func NewUser(repo repository.User, p repository.Post) *User {
+	return &User{
+		repo: repo,
+		p:    p,
+	}
 }
 
 func (u *User) Create(ctx context.Context, name vo.Name) (*model.User, error) {
