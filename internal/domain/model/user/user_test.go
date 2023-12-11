@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"slices"
 	"testing"
 
 	"github.com/google/uuid"
@@ -76,9 +77,10 @@ func TestUser_Apply(t *testing.T) {
 		events event.Events[any]
 	}
 	tests := []struct {
-		name string
-		args args
-		want []User
+		name      string
+		args      args
+		want      []User
+		wantPosts int
 	}{
 		{
 			name: "create and change name",
@@ -123,6 +125,26 @@ func TestUser_Apply(t *testing.T) {
 					version: 3,
 				},
 			},
+		}, {
+			name: "create post",
+			args: args{
+				events: event.Events[any]{
+					user.NewCreate("user-1", "name-1"),
+					user.NewCreatePost("user-1", "post-1", 2),
+				},
+			},
+			want: []User{
+				{
+					id:      "user-1",
+					name:    "name-1",
+					version: 1,
+				}, {
+					id:      "user-1",
+					name:    "name-1",
+					version: 2,
+				},
+			},
+			wantPosts: 1,
 		},
 	}
 	for _, tt := range tests {
@@ -134,6 +156,12 @@ func TestUser_Apply(t *testing.T) {
 				assert.Equal(t, tt.want[i].name, u.name, "i=%d", i)
 				assert.Equal(t, tt.want[i].version, u.version, "i=%d", i)
 			}
+			posts := slices.DeleteFunc[event.Events[any], event.Event[any]](u.events, func(e event.Event[any]) bool {
+				_, ok := e.(user.CreatePost)
+				t.Log(ok)
+				return !ok
+			})
+			assert.Len(t, posts, tt.wantPosts)
 		})
 	}
 }

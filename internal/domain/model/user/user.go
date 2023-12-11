@@ -7,7 +7,8 @@ import (
 	command "github.com/taniko/event-sourcing/internal/command/user"
 	"github.com/taniko/event-sourcing/internal/domain/event"
 	"github.com/taniko/event-sourcing/internal/domain/event/user"
-	post "github.com/taniko/event-sourcing/internal/domain/model/post/vo"
+	"github.com/taniko/event-sourcing/internal/domain/model/post"
+	postvo "github.com/taniko/event-sourcing/internal/domain/model/post/vo"
 	"github.com/taniko/event-sourcing/internal/domain/model/user/vo"
 )
 
@@ -17,6 +18,7 @@ type (
 		version event.Version
 		name    vo.Name
 		events  event.Events[any]
+		post    []post.Post
 	}
 )
 
@@ -29,6 +31,14 @@ func New(events ...event.Event[any]) User {
 			u.name = e.Name()
 		case user.ChangeName:
 			u.name = e.Name()
+		case user.CreatePost:
+			u.post = append(u.post, *post.New(
+				e.ID(),
+				e.UserID(),
+				e.Body(),
+				e.EventVersion(),
+				e.CreatedAt(),
+			))
 		}
 		u.events = append(u.events, e)
 		u.version = e.EventVersion()
@@ -77,7 +87,7 @@ func (u User) Execute(cmd any) event.Events[any] {
 	return events
 }
 
-func (u User) Post(_ context.Context, body post.Body) (event.Events[any], error) {
+func (u User) Post(_ context.Context, body postvo.Body) (event.Events[any], error) {
 	var events event.Events[any]
 	latestVersion := event.Version(0)
 	if lastEvent, ok := u.events.Latest().Get(); ok {

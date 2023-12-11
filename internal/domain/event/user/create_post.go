@@ -11,6 +11,7 @@ import (
 const CreatePostName event.Name = "post.create"
 
 type CreatePost struct {
+	id        vo.ID
 	userID    user.ID
 	version   event.Version
 	body      vo.Body
@@ -49,4 +50,8 @@ func (e CreatePost) Body() vo.Body {
 
 func (e CreatePost) CreatedAt() time.Time {
 	return e.createdAt
+}
+
+func (e CreatePost) ID() vo.ID {
+	return e.id
 }
