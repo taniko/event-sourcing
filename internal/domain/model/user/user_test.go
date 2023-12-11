@@ -1,15 +1,12 @@
 package user
 
 import (
-	"context"
-	"slices"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/taniko/event-sourcing/internal/domain/event"
 	"github.com/taniko/event-sourcing/internal/domain/event/user"
-	postvo "github.com/taniko/event-sourcing/internal/domain/model/post/vo"
 	"github.com/taniko/event-sourcing/internal/domain/model/user/vo"
 )
 
@@ -125,26 +122,6 @@ func TestUser_Apply(t *testing.T) {
 					version: 3,
 				},
 			},
-		}, {
-			name: "create post",
-			args: args{
-				events: event.Events[any]{
-					user.NewCreate("user-1", "name-1"),
-					user.NewCreatePost("user-1", "post-1", 2),
-				},
-			},
-			want: []User{
-				{
-					id:      "user-1",
-					name:    "name-1",
-					version: 1,
-				}, {
-					id:      "user-1",
-					name:    "name-1",
-					version: 2,
-				},
-			},
-			wantPosts: 1,
 		},
 	}
 	for _, tt := range tests {
@@ -156,12 +133,6 @@ func TestUser_Apply(t *testing.T) {
 				assert.Equal(t, tt.want[i].name, u.name, "i=%d", i)
 				assert.Equal(t, tt.want[i].version, u.version, "i=%d", i)
 			}
-			posts := slices.DeleteFunc[event.Events[any], event.Event[any]](u.events, func(e event.Event[any]) bool {
-				_, ok := e.(user.CreatePost)
-				t.Log(ok)
-				return !ok
-			})
-			assert.Len(t, posts, tt.wantPosts)
 		})
 	}
 }
@@ -194,38 +165,6 @@ func TestUser_Execute(t *testing.T) {
 			u := New(tt.args.Events...)
 			events := u.changeName(tt.args.name)
 			assert.Equal(t, tt.want, events)
-		})
-	}
-}
-
-func TestUser_Post(t *testing.T) {
-	tests := []struct {
-		name string
-		args postvo.Body
-	}{
-		{
-			name: "success",
-			args: "text",
-		}, {
-			name: "success another text",
-			args: "another text",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			u := New(user.NewCreate("user-1", "name-1"))
-			assert.Greater(t, u.version, event.Version(0))
-			baseVersion := u.version
-			events, err := u.Post(context.Background(), tt.args)
-			assert.NoError(t, err)
-			assert.Len(t, events, 1)
-			e, ok := events[0].(user.CreatePost)
-			assert.True(t, ok)
-			assert.NotZero(t, e)
-			assert.Equal(t, user.CreatePostName, e.EventName())
-			assert.Equal(t, baseVersion.Next(), e.EventVersion())
-			assert.Equal(t, tt.args, e.Body())
 		})
 	}
 }

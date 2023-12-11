@@ -5,7 +5,8 @@ import (
 
 	"github.com/samber/mo"
 	command "github.com/taniko/event-sourcing/internal/command/user"
-	post "github.com/taniko/event-sourcing/internal/domain/model/post/vo"
+	"github.com/taniko/event-sourcing/internal/domain/model/post"
+	postvo "github.com/taniko/event-sourcing/internal/domain/model/post/vo"
 	model "github.com/taniko/event-sourcing/internal/domain/model/user"
 	"github.com/taniko/event-sourcing/internal/domain/model/user/vo"
 	"github.com/taniko/event-sourcing/internal/domain/repository"
@@ -13,6 +14,7 @@ import (
 
 type User struct {
 	repo repository.User
+	p    repository.Post
 }
 
 func NewUser(repo repository.User) *User {
@@ -44,19 +46,14 @@ func (u *User) ChangeName(ctx context.Context, id vo.ID, name vo.Name) (*model.U
 }
 
 // Post 投稿する
-func (u *User) Post(ctx context.Context, userID vo.ID, body post.Body) (*model.User, error) {
+func (u *User) Post(ctx context.Context, userID vo.ID, body postvo.Body) error {
 	user, err := u.repo.Find(ctx, userID)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	originalVersion := user.Version()
-	events, err := user.Post(ctx, body)
-	if err != nil {
-		return nil, err
+	p := post.Create(user.ID(), body)
+	if err := u.p.Save(ctx, *p); err != nil {
+		return err
 	}
-	newUser := user.Apply(events...)
-	if err := u.repo.Save(ctx, newUser, originalVersion); err != nil {
-		return nil, err
-	}
-	return &newUser, nil
+	return nil
 }
