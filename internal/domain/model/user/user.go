@@ -1,10 +1,13 @@
 package user
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	command "github.com/taniko/event-sourcing/internal/command/user"
 	"github.com/taniko/event-sourcing/internal/domain/event"
 	"github.com/taniko/event-sourcing/internal/domain/event/user"
+	post "github.com/taniko/event-sourcing/internal/domain/model/post/vo"
 	"github.com/taniko/event-sourcing/internal/domain/model/user/vo"
 )
 
@@ -13,7 +16,7 @@ type (
 		id      vo.ID
 		version event.Version
 		name    vo.Name
-		events  []event.Event[any]
+		events  event.Events[any]
 	}
 )
 
@@ -72,4 +75,14 @@ func (u User) Execute(cmd any) event.Events[any] {
 		}
 	}
 	return events
+}
+
+func (u User) Post(_ context.Context, body post.Body) (event.Events[any], error) {
+	var events event.Events[any]
+	latestVersion := event.Version(0)
+	if lastEvent, ok := u.events.Latest().Get(); ok {
+		latestVersion = lastEvent.EventVersion()
+	}
+	events = append(events, user.NewCreatePost(u.id, body, latestVersion.Next()))
+	return events, nil
 }

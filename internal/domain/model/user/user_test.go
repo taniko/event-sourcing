@@ -1,12 +1,14 @@
 package user
 
 import (
+	"context"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/taniko/event-sourcing/internal/domain/event"
 	"github.com/taniko/event-sourcing/internal/domain/event/user"
+	postvo "github.com/taniko/event-sourcing/internal/domain/model/post/vo"
 	"github.com/taniko/event-sourcing/internal/domain/model/user/vo"
 )
 
@@ -164,6 +166,38 @@ func TestUser_Execute(t *testing.T) {
 			u := New(tt.args.Events...)
 			events := u.changeName(tt.args.name)
 			assert.Equal(t, tt.want, events)
+		})
+	}
+}
+
+func TestUser_Post(t *testing.T) {
+	tests := []struct {
+		name string
+		args postvo.Body
+	}{
+		{
+			name: "success",
+			args: "text",
+		}, {
+			name: "success another text",
+			args: "another text",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := New(user.NewCreate("user-1", "name-1"))
+			assert.Greater(t, u.version, event.Version(0))
+			baseVersion := u.version
+			events, err := u.Post(context.Background(), tt.args)
+			assert.NoError(t, err)
+			assert.Len(t, events, 1)
+			e, ok := events[0].(user.CreatePost)
+			assert.True(t, ok)
+			assert.NotZero(t, e)
+			assert.Equal(t, user.CreatePostName, e.EventName())
+			assert.Equal(t, baseVersion.Next(), e.EventVersion())
+			assert.Equal(t, tt.args, e.Body())
 		})
 	}
 }
